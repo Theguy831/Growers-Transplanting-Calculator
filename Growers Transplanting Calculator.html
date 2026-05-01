@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Growers Transplanting Calculator</title>
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --secondary: #64748b;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main);
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            margin: 0;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .container-box { width: 100%; max-width: 500px; box-sizing: border-box; }
+
+        .lang-switch { margin-bottom: 12px; display: flex; justify-content: flex-end; }
+        
+        .lang-switch select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            cursor: pointer;
+            font-size: 0.9em;
+            outline: none;
+        }
+
+        .input-group { 
+            margin-bottom: 20px; 
+            background: var(--card-bg); 
+            padding: 20px; 
+            border-radius: 16px; 
+            box-shadow: var(--shadow); 
+            border: 1px solid var(--border);
+            box-sizing: border-box;
+        }
+
+        .flex-wrap-center {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+        
+        @media (min-width: 400px) { .flex-wrap-center { grid-template-columns: 1fr 1fr; } }
+
+        .input-item { display: flex; flex-direction: column; align-items: stretch; }
+
+        input, select { 
+            padding: 12px 14px; 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            width: 100%; 
+            box-sizing: border-box; 
+            font-size: 16px; 
+            background: #fafafa;
+            transition: all 0.2s;
+            outline: none;
+        }
+        input:focus, select:focus {
+            background: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        .field-label { 
+            font-size: 0.8em; 
+            color: var(--text-muted); 
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .btn-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+        }
+        
+        @media (min-width: 400px) { .btn-container { grid-template-columns: 1fr 1fr; } }
+
+        button { 
+            padding: 14px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 0.95em;
+            transition: all 0.2s ease; 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+        }
+        .btn-generate { background: var(--primary); color: white; grid-column: span 2; }
+        .btn-generate:hover { background: var(--primary-hover); }
+        .btn-reset { background: #f1f5f9; color: #475569; }
+        .btn-copy { background: #e0f2fe; color: #0369a1; display: none; }
+        .btn-acre { background: #fef3c7; color: #b45309; display: none; }
+
+        #configVisual { 
+            margin-top: 15px; 
+            padding: 15px; 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            background: #f8fafc; 
+            display: none; 
+            grid-column: span 2;
+        }
+        .visual-row { display: flex; justify-content: center; gap: 10px; margin: 10px 0; }
+        .crop-line { 
+            width: 45px; 
+            height: 100px; 
+            background: #e2e8f0; 
+            border-radius: 6px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: space-around; 
+            padding: 10px 0; 
+            border: 1px solid #cbd5e1; 
+        }
+        .plant-dot { width: 12px; height: 12px; background: #059669; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+        .visual-label { font-size: 0.75em; color: var(--text-muted); font-weight: 600; }
+
+        #summary { 
+            margin-bottom: 20px; 
+            padding: 15px; 
+            background: #f0fdf4; 
+            border-radius: 12px; 
+            display: none; 
+            font-size: 0.9em; 
+            line-height: 1.5; 
+            color: #166534; 
+            border: 1px solid #bbf7d0; 
+            box-sizing: border-box;
+        }
+        .stat-highlight { font-weight: 700; color: #15803d; }
+
+        .grid-container { display: flex; flex-direction: column; gap: 20px; align-items: center; width: 100%; }
+        .box-card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            padding: 15px; 
+            border-radius: 16px; 
+            box-shadow: var(--shadow); 
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .box-title { text-align: center; font-weight: 700; margin-bottom: 4px; color: var(--text-main); font-size: 1.05em; }
+        .box-subtitle { text-align: center; font-size: 0.8em; color: var(--text-muted); margin-bottom: 12px; height: auto; font-weight: 500; }
+        .sections-wrapper { display: flex; gap: 5px; border: 1px solid var(--border); padding: 5px; background: #f8fafc; border-radius: 8px; justify-content: center; }
+        .section { display: grid; grid-template-columns: repeat(7, 11px); grid-template-rows: repeat(9, 11px); gap: 2px; border: 1px solid #cbd5e1; padding: 3px; background: white; border-radius: 4px; }
+        .tray { width: 11px; height: 11px; border: 1px solid #f1f5f9; background: #f1f5f9; border-radius: 2px; }
+        .tray.filled { background: var(--primary); border-color: #059669; }
+        
+        #customSpacingInput, #customLossInput { display: none; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="lang-switch container-box">
+        <select id="langSelect" onchange="updateLanguage()">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+        </select>
+    </div>
+
+    <div class="input-group container-box">
+        <div class="flex-wrap-center">
+            <div class="input-item">
+                <span class="field-label" id="lblTrays">Total Trays</span>
+                <input type="number" id="trayCount" placeholder="Ex: 500" min="1">
+            </div>
+            <div class="input-item">
+                <span class="field-label" id="lblSpacing">Spacing</span>
+                <select id="spacing" onchange="toggleCustomSpacing(); saveProfile();">
+                    <option value="" disabled selected id="spacingPlaceholder">Select Spacing</option>
+                    <option value="6">6 inch</option>
+                    <option value="8">8 inch</option>
+                    <option value="10">10 inch</option>
+                    <option value="12">12 inch</option>
+                    <option value="15">15 inch</option>
+                    <option value="custom" id="optCustom">Custom...</option>
+                </select>
+                <input type="number" id="customSpacingInput" placeholder="Inches" oninput="saveProfile()">
+            </div>
+            <div class="input-item">
+                <span class="field-label" id="lblLoss">Plant Loss (%)</span>
+                <select id="lossPercent" onchange="toggleCustomLoss(); saveProfile();">
+                    <option value="0">0%</option>
+                    <option value="5">5%</option>
+                    <option value="8">8%</option>
+                    <option value="custom" id="optCustomLoss">Custom...</option>
+                </select>
+                <input type="number" id="customLossInput" placeholder="Loss %" oninput="saveProfile()">
+            </div>
+        </div>
+
+        <div class="flex-wrap-center" style="border-top: 1px solid #eee; margin-top:15px; padding-top:15px;">
+            <div class="input-item">
+                <span class="field-label" id="lblNozzles">Plants/Line (Noz.)</span>
+                <input type="number" id="nozzles" value="2" min="1" oninput="drawDiagram(); saveProfile();">
+            </div>
+            <div class="input-item">
+                <span class="field-label" id="lblCropLines">No. of Lines</span>
+                <input type="number" id="cropLines" value="4" min="1" oninput="drawDiagram(); saveProfile();">
+            </div>
+            
+            <div id="configVisual">
+                <div class="visual-label" id="lblDiagram">Setup Preview (Stamp Layout)</div>
+                <div id="diagramContainer" class="visual-row"></div>
+                <div class="visual-label" id="lblDiagramFooter" style="margin-top:5px; font-weight:bold; color:var(--text-main);">15.748" Row Width</div>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button class="btn-generate" id="btnGen" onclick="calculateBoxes()">Generate Plant</button>
+            <button class="btn-acre" id="acreBtn" onclick="calculateAcreage()">Calculate Acres</button>
+            <button class="btn-reset" id="btnRes" onclick="resetForm()">Reset</button>
+            <button id="copyBtn" class="btn-copy" onclick="copySummary()">Copy Summary</button>
+        </div>
+    </div>
+
+    <div id="summary" class="container-box"></div>
+    <div id="output" class="grid-container container-box"></div>
+
+    <script>
+        let textToCopy = "";
+        let globalTrayCount = 0;
+
+        const translations = {
+            en: {
+                totalTrays: "Total Trays", spacingPlaceholder: "Select Spacing", optCustom: "Custom...",
+                btnGen: "Generate Layout", btnAcre: "Calculate Acres", btnRes: "Reset", btnCopy: "Copy Summary",
+                shipSummary: "Shipment Summary", totBoxes: "Total Boxes", fullBoxes: "Full Boxes",
+                box: "Box", boxIncomplete: "Box 1 (Incomplete)", incomplete: "INCOMPLETE", fullBox: "Full Box (189 Trays)",
+                sect: "Sect", lines: "Lines", trays: "Trays", estAcreage: "Estimated Acreage",
+                copied: "Copied!", alertSpacing: "Please enter or select a valid spacing.", plants: "plants",
+                lblNozzles: "Plants/Line (Noz.)", lblCropLines: "No. of Lines", lblDiagram: "Setup Preview (Stamp Layout)",
+                lblDiagramFooter: "15.748\" Row Width", lblLoss: "Plant Loss (%)", optCustomLoss: "Custom...",
+                netPlants: "Net Plants (after loss)"
+            },
+            es: {
+                totalTrays: "Total de charolas", spacingPlaceholder: "Seleccionar Espacio", optCustom: "Personalizado...",
+                btnGen: "Generar planta", btnAcre: "Calcular Acres", btnRes: "Reiniciar", btnCopy: "Copiar Resumen",
+                shipSummary: "Resumen de Envío", totBoxes: "Total de Cajas", fullBoxes: "Cajas Llenas",
+                box: "Caja", boxIncomplete: "Caja 1 (Incompleta)", incomplete: "INCOMPLETA", fullBox: "Caja Llena (189 Charolas)",
+                sect: "Sect", lines: "Líneas", trays: "Charolas", estAcreage: "Acreaje Estimado",
+                copied: "¡Copiado!", alertSpacing: "Por favor ingrese o seleccione un espacio válido.", plants: "plantas",
+                lblNozzles: "Plantas/Ilos (Boq.)", lblCropLines: "Número de Camas", lblDiagram: "Vista Previa (Diseño de Surco's)",
+                lblDiagramFooter: "15.748\" Ancho de Surco", lblLoss: "Pérdida de Planta (%)", optCustomLoss: "Personalizado...",
+                netPlants: "Plantas Netas (tras pérdida)"
+            }
+        };
+
+        function saveProfile() {
+            const profile = {
+                spacing: document.getElementById('spacing').value,
+                customSpacing: document.getElementById('customSpacingInput').value,
+                loss: document.getElementById('lossPercent').value,
+                customLoss: document.getElementById('customLossInput').value,
+                nozzles: document.getElementById('nozzles').value,
+                cropLines: document.getElementById('cropLines').value
+            };
+            localStorage.setItem('transplanterProfile', JSON.stringify(profile));
+        }
+
+        function loadProfile() {
+            const savedProfile = localStorage.getItem('transplanterProfile');
+            if (savedProfile) {
+                const p = JSON.parse(savedProfile);
+                if (p.spacing) document.getElementById('spacing').value = p.spacing;
+                if (p.customSpacing) document.getElementById('customSpacingInput').value = p.customSpacing;
+                if (p.loss) document.getElementById('lossPercent').value = p.loss;
+                if (p.customLoss) document.getElementById('customLossInput').value = p.customLoss;
+                if (p.nozzles) document.getElementById('nozzles').value = p.nozzles;
+                if (p.cropLines) document.getElementById('cropLines').value = p.cropLines;
+                toggleCustomSpacing();
+                toggleCustomLoss();
+            }
+        }
+
+        function toggleCustomSpacing() {
+            const select = document.getElementById('spacing');
+            document.getElementById('customSpacingInput').style.display = (select.value === 'custom') ? 'block' : 'none';
+        }
+
+        function toggleCustomLoss() {
+            const select = document.getElementById('lossPercent');
+            document.getElementById('customLossInput').style.display = (select.value === 'custom') ? 'block' : 'none';
+        }
+
+        function updateLanguage() {
+            const lang = document.getElementById('langSelect').value;
+            const t = translations[lang];
+            document.getElementById('lblTrays').innerText = t.totalTrays;
+            document.getElementById('lblSpacing').innerText = t.spacingPlaceholder;
+            document.getElementById('optCustom').innerText = t.optCustom;
+            document.getElementById('lblLoss').innerText = t.lblLoss;
+            document.getElementById('optCustomLoss').innerText = t.optCustomLoss;
+            document.getElementById('btnGen').innerText = t.btnGen;
+            document.getElementById('acreBtn').innerText = t.btnAcre;
+            document.getElementById('btnRes').innerText = t.btnRes;
+            document.getElementById('copyBtn').innerText = t.btnCopy;
+            document.getElementById('lblNozzles').innerText = t.lblNozzles;
+            document.getElementById('lblCropLines').innerText = t.lblCropLines;
+            document.getElementById('lblDiagram').innerText = t.lblDiagram;
+            document.getElementById('lblDiagramFooter').innerText = t.lblDiagramFooter;
+            if (globalTrayCount > 0) calculateBoxes();
+        }
+
+        function drawDiagram() {
+            const n = parseInt(document.getElementById('nozzles').value) || 0;
+            const cl = parseInt(document.getElementById('cropLines').value) || 0;
+            const container = document.getElementById('diagramContainer');
+            const visual = document.getElementById('configVisual');
+            if (n <= 0 || cl <= 0) { visual.style.display = 'none'; return; }
+            visual.style.display = 'block';
+            container.innerHTML = '';
+            for (let i = 0; i < cl; i++) {
+                const line = document.createElement('div');
+                line.className = 'crop-line';
+                for (let j = 0; j < n; j++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'plant-dot';
+                    line.appendChild(dot);
+                }
+                container.appendChild(line);
+            }
+        }
+
+        function resetForm() {
+            localStorage.removeItem('transplanterProfile');
+            location.reload();
+        }
+
+        function calculateBoxes() {
+            const lang = document.getElementById('langSelect').value;
+            const t = translations[lang];
+            globalTrayCount = parseInt(document.getElementById('trayCount').value);
+            const output = document.getElementById('output');
+            const summary = document.getElementById('summary');
+            output.innerHTML = '';
+            if (isNaN(globalTrayCount) || globalTrayCount <= 0) return;
+            drawDiagram();
+            const TP_LINE = 7, TP_SECT = 63, TP_BOX = 189;
+            const totalBoxes = Math.ceil(globalTrayCount / TP_BOX);
+            const fullBoxes = Math.floor(globalTrayCount / TP_BOX);
+            const remainder = globalTrayCount % TP_BOX;
+            let boxContents = [];
+            if (remainder > 0) boxContents.push(remainder);
+            for (let i = 0; i < fullBoxes; i++) boxContents.push(TP_BOX);
+            let incLabel = "";
+            if (remainder > 0) {
+                incLabel = `${Math.floor(remainder/TP_SECT)} ${t.sect}, ${Math.floor((remainder%TP_SECT)/TP_LINE)} ${t.lines}, ${remainder%TP_LINE} ${t.trays}`;
+            }
+            summary.style.display = 'block';
+            document.getElementById('copyBtn').style.display = 'inline-block';
+            document.getElementById('acreBtn').style.display = 'inline-block';
+            summary.innerHTML = `<div><strong>${t.shipSummary}:</strong></div>
+                • ${t.totBoxes}: <span class="stat-highlight">${totalBoxes}</span><br>
+                • ${t.fullBoxes}: <span class="stat-highlight">${fullBoxes}</span><br>
+                ${remainder > 0 ? `• ${t.boxIncomplete}: <span class="stat-highlight">${incLabel}</span>` : ''}
+                <div id="acreResult" style="margin-top:5px; border-top:1px solid #ccc; padding-top:5px; display:none;"></div>`;
+            boxContents.forEach((trays, index) => {
+                const boxCard = document.createElement('div');
+                boxCard.className = 'box-card';
+                let sub = (trays < TP_BOX) ? `<span style="color:#dc2626"><b>${t.incomplete}:</b> ${incLabel}</span>` : t.fullBox;
+                boxCard.innerHTML = `<div class="box-title">${t.box} ${index + 1}</div><div class="box-subtitle">${sub}</div>`;
+                const wrapper = document.createElement('div');
+                wrapper.className = 'sections-wrapper';
+                for (let s = 0; s < 3; s++) {
+                    const sect = document.createElement('div');
+                    sect.className = 'section';
+                    for (let tr = 0; tr < 63; tr++) {
+                        const tray = document.createElement('div');
+                        tray.className = 'tray';
+                        if (trays > 0) { tray.classList.add('filled'); trays--; }
+                        sect.appendChild(tray);
+                    }
+                    wrapper.appendChild(sect);
+                }
+                boxCard.appendChild(wrapper);
+                output.appendChild(boxCard);
+            });
+        }
+
+        function calculateAcreage() {
+            const lang = document.getElementById('langSelect').value;
+            const t = translations[lang];
+            let spacing = (document.getElementById('spacing').value === 'custom') ? parseFloat(document.getElementById('customSpacingInput').value) : parseFloat(document.getElementById('spacing').value);
+            let loss = (document.getElementById('lossPercent').value === 'custom') ? parseFloat(document.getElementById('customLossInput').value) : parseFloat(document.getElementById('lossPercent').value);
+            if (isNaN(spacing) || isNaN(loss)) { alert(t.alertSpacing); return; }
+            const totalPlants = globalTrayCount * 256;
+            const netPlants = totalPlants * (1 - (loss / 100));
+            const totalAcres = (netPlants * (15.748 / 12.0) * (spacing / 12.0)) / 43560;
+            const res = document.getElementById('acreResult');
+            res.style.display = 'block';
+            res.innerHTML = `• ${t.estAcreage}: <span class="stat-highlight">${totalAcres.toFixed(3)} Acres</span><br>• ${t.netPlants}: <span class="stat-highlight">${Math.round(netPlants).toLocaleString()}</span>`;
+            textToCopy = `${t.shipSummary}:\nAcres: ${totalAcres.toFixed(3)}\nNet Plants: ${Math.round(netPlants)}`;
+        }
+
+        function copySummary() {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = translations[document.getElementById('langSelect').value].copied;
+                setTimeout(() => { btn.innerText = translations[document.getElementById('langSelect').value].btnCopy; }, 2000);
+            });
+        }
+        
+        window.onload = function() { loadProfile(); drawDiagram(); updateLanguage(); };
+    </script>
+</body>
+</html>
